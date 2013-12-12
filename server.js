@@ -5,7 +5,7 @@ var index = fs.readFileSync('index.html');
 
 http.createServer(function (req, res) {
 
-  if (q.url === '/favicon.ico') {
+  if (req.url === '/favicon.ico') {
     var img = fs.readFileSync('./favicon.ico');
     res.writeHead(200, {"Content-Type": "image/x-icon"});
     res.end(img,'binary');
