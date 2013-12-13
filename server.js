@@ -12,6 +12,13 @@ http.createServer(function (req, res) {
     return;
   }
 
+  if (req.url === '/bootstrap.min.css') {
+    var css = fs.readFileSync('./bootstrap.min.css');
+    res.writeHead(200, {"Content-Type": "text/css"});
+    res.end(css, "utf-8");
+    return;
+  }
+
   res.writeHead(200, {"Content-Type": "text/html; charset=utf-8"});
   res.end(index);
 }).listen(8080);
