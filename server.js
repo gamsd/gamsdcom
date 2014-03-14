@@ -1,4 +1,3 @@
-
 var http = require('http');
 var fs = require('fs');
 var index = fs.readFileSync('index.html');
@@ -9,6 +8,11 @@ http.createServer(function (req, res) {
     var img = fs.readFileSync('./favicon.ico');
     res.writeHead(200, {"Content-Type": "image/x-icon"});
     res.end(img,'binary');
+    return;
+  } else if (req.url === '/octocat.jpg') {
+    var cat = fs.readFileSync('./octocat.jpg');
+    res.writeHead(200, {"Content-Type": "image/x-icon"});
+    res.end(cat,'binary');
     return;
   }
 
