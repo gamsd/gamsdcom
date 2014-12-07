@@ -5,15 +5,19 @@ var index = fs.readFileSync('index.html');
 http.createServer(function (req, res) {
 
   if (req.url === '/favicon.ico') {
+
     var img = fs.readFileSync('./favicon.ico');
     res.writeHead(200, {"Content-Type": "image/x-icon"});
     res.end(img,'binary');
     return;
-  } else if (req.url === '/octocat.jpg') {
-    var cat = fs.readFileSync('./octocat.jpg');
-    res.writeHead(200, {"Content-Type": "image/x-icon"});
-    res.end(cat,'binary');
+
+  } else if (req.url === '/screen.css') {
+
+    var css = fs.readFileSync('./screen.css');
+    res.writeHead(200, {"Content-Type": "text/css"});
+    res.end(css,'binary');
     return;
+
   }
 
   res.writeHead(200, {"Content-Type": "text/html; charset=utf-8"});
