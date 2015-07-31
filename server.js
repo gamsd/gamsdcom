@@ -4,7 +4,14 @@ var index = fs.readFileSync('index.html');
 
 http.createServer(function (req, res) {
 
-  if (req.url === '/favicon.ico') {
+  if (req.url === '/gamsd.jpg') {
+
+    var img = fx.readFileSync('./gamsd.jpg');
+    res.writeHead(200, {"Content-Type": "image/jpeg"});
+    res.end(img,'binary');
+    return;
+
+  } (req.url === '/favicon.ico') {
 
     var img = fs.readFileSync('./favicon.ico');
     res.writeHead(200, {"Content-Type": "image/x-icon"});
