@@ -1,0 +1,33 @@
+{
+  "name": "gamsdcom",
+  "version": "0.2.0",
+  "description": "personal website for guilherme dantas",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gamsd/gamsdcom.git"
+  },
+  "keywords": [
+    "gamsd",
+    "akka",
+    "scala",
+    "clojure",
+    "functional",
+    "programming",
+    "software",
+    "developer"
+  ],
+  "author": "Guilherme Dantas",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/gamsd/gamsdcom/issues"
+  },
+  "homepage": "https://github.com/gamsd/gamsdcom#readme",
+  "dependencies": {
+    "express": "^4.13.4"
+  }
+}
