@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    {{! Document Settings }}
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+    {{! Page Meta }}
+    <title>{{meta_title}}</title>
+    <meta name="description" content="{{meta_description}}" />
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="shortcut icon" href="{{asset "/icons/favicon.ico"}}" type="image/x-icon">
+
+    {{! Styles and Fonts }}
+    <link rel="stylesheet" type="text/css" href="{{asset "css/normalize.css"}}" />
+    <link rel="stylesheet" type="text/css" href="{{asset "css/icons.css"}}" />
+    <link rel="stylesheet" type="text/css" href="{{asset "css/screen.css"}}" />
+    <link href='http://fonts.googleapis.com/css?family=Lato:100,300,700,100italic,300italic,700italic|Source+Code+Pro:300,400,500,700|Bree+Serif' rel='stylesheet' type='text/css'>
+
+    {{! Ghost outputs important style and meta data with this tag }}
+    {{ghost_head}}
+</head>
+<body class="{{body_class}}">
+	<header class="main-header">
+
+        <nav class="main-nav">
+            <a href="http://www.gamsd.com">Home</a>
+            <a href="http://blog.gamsd.com">Blog</a>
+            <a href="http://www.gamsd.com/talks">Talks</a>
+        </nav>
+
+		<div class="main-header-content">
+			<h1 class="blog-title"><a href="{{@blog.url}}">{{@blog.title}}</a></h1>
+			<h2 class="blog-description">{{@blog.description}}</h2>
+		</div>
+
+		
+	</header>
+
+    {{! Everything else gets inserted here }}
+    {{{body}}}
+    
+    <footer class="site-footer">
+
+        <section class="rss">
+
+        </section>
+
+		<section class="aligned">
+            <a href="http://www.facebook.com/gamsd" target="_blank">
+                <img src="http://www.niftybuttons.com/authentic/bw-square/facebook.png">
+            </a>
+            <a href="http://www.twitter.com/gamsd" target="_blank">
+                <img src="http://www.niftybuttons.com/authentic/bw-square/twitter.png">
+            </a>
+            <a href="http://www.linkedin.com/in/gamsd" target="_blank">
+                <img src="http://www.niftybuttons.com/authentic/bw-square/linkedin.png">
+            </a>
+            <a href="http://github.com/gamsd" target="_blank">
+                <img src="http://www.niftybuttons.com/authentic/bw-square/github.png">
+            </a>
+
+            <a href="{{@blog.url}}/rss/" target="_blank">
+                <img src="http://www.niftybuttons.com/authentic/bw-square/rss.png">
+            </a>
+		</section>
+    </footer>
+    {{ghost_foot}}
+</body>
+</html>
