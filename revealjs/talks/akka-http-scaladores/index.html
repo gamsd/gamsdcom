@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+
+    <title>Akka Streams & HTTP - Musings from production</title>
+
+    <meta name="description" content="The path to production for a microservice built in Akka HTTP">
+    <meta name="author" content="Guilherme Dantas">
+
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+
+    <link rel="stylesheet" href="/revealjs/css/reveal.css">
+    <link rel="stylesheet" href="/revealjs/css/theme/black.css" id="theme">
+
+    <!-- Code syntax highlighting -->
+    <link rel="stylesheet" href="/revealjs/lib/css/zenburn.css">
+
+    <!-- Printing and PDF exports -->
+    <script>
+        var link = document.createElement( 'link' );
+        link.rel = 'stylesheet';
+        link.type = 'text/css';
+        link.href = window.location.search.match( /print-pdf/gi ) ? '/revealjs/css/print/pdf.css' : '/revealjs/css/print/paper.css';
+        document.getElementsByTagName( 'head' )[0].appendChild( link );
+    </script>
+
+    <!--[if lt IE 9]>
+    <script src="/revealjs/lib/js/html5shiv.js"></script>
+    <![endif]-->
+</head>
+
+	<body>
+
+		<div class="reveal">
+
+			<!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+				<section>
+					<h1>Akka Streams & HTTP</h1>
+					<h3>Musings from production</h3>
+					<p>
+						<small><a href="http://twitter.com/gamsd">@gamsd</a>,
+                            <a href="http://blog.gamsd.com">blog.gamsd.com</a></small>
+					</p>
+				</section>
+
+				<section>
+					<h2>What is this all about</h2>
+					<p><span class="fragment">Akka Streams, implementation on top of Akka</span></p>
+					<p><span class="fragment">Akka HTTP, a lean and performant library for HTTP services on top of Akka Streams</span></p>
+				</section>
+
+				<section>
+					<h2>Who we are</h2>
+					<p><span class="fragment"><a href="http://www.vivareal.com.br/">Vivareal</a>, largest real estate portal in Brazil</span></p>
+					<p><span class="fragment">Your host tonight</span></p>
+				</section>
+
+				<section>
+					<h2>Oh, Canada!</h2>
+					<p>
+						<small><a href="http://scalaupnorth.com/">scalaupnorth.com</a></small>
+					</p>
+				</section>
+
+				<section>
+					<h3>Why should we bother</h3>
+					<p><span class="fragment">Life is hard</span></p>
+					<p><span class="fragment">Monoliths are hard</span></p>
+					<p><span class="fragment">Microservices are harder</span></p>
+				</section>
+
+				<section>
+					<h3>Why should we bother</h3>
+					<p><span class="fragment">Coupling</span></p>
+					<p><span class="fragment">Asynchronicity</span></p>
+					<p><span class="fragment">Error handling</span></p>
+					<p><span class="fragment">Performance and elasticity</span></p>
+				</section>
+
+				<section>
+					<h3>We need better tools</h3>
+				</section>
+
+				<section>
+					<h3>First steps with Scala</h3>
+					<p><span class="fragment">Dojos didn't work</span></p>
+					<p><span class="fragment">Streams for tools</span></p>
+					<p><span class="fragment">HTTP for APIs</span></p>
+				</section>
+
+				<section>
+					<h3>Streams for tools</h3>
+					<p><span class="fragment">Moving data everywhere</span></p>
+					<p><span class="fragment">No threading mess</span></p>
+					<p><span class="fragment">Preformance for free (almost)</span></p>
+				</section>
+
+				<section>
+					<h3>Streams for tools</h3>
+					<pre><code class="scala" style="font-size: 0.88em">
+val images = TableQuery[Images]
+val query = images.take(100).result
+val fromDatabase: DatabasePublisher[Image] = db.stream(query)
+
+Source(fromDatabase)
+  .map({x => println(x); x})
+  .mapAsyncUnordered(p)(gatherMoreInfo)
+  .map(transformInfo)
+  .mapAsyncUnordered(p)(updateImage)
+  .map(logSuccessOrError)
+  .to(Sink.ignore)
+  .run()
+					</code></pre>
+				</section>
+
+				<section>
+					<h3>HTTP for APIs</h3>
+					<p><span class="fragment">Akka Streams led to Akka HTTP</span></p>
+					<p><span class="fragment">Spray-based, performant, supported by Typesafe/Lightbend</span></p>
+					<p><span class="fragment">Other libs are fine, but we had to pick one</span></p>
+				</section>
+
+				<section>
+					<h3>HTTP for APIs</h3>
+					<pre><code class="scala" style="font-size: 0.88em">
+val routes = (get & path("echo" / Segment)) { s =>
+  val f = Future.successful(s)
+  complete(f)
+}
+
+Http().bindAndHandle(routes, "localhost", 8080)
+					</code></pre>
+				</section>
+
+				<section>
+					<h3>Impressions</h3>
+					<p><span class="fragment">Performant, despite not being optmized</span></p>
+					<p><span class="fragment">Library, not a framework</span></p>
+					<p><span class="fragment">Easy to extend with directives and implicits</span></p>
+				</section>
+
+				<section>
+					<h3>Security directives</h3>
+					<pre><code class="scala" style="font-size: 0.88em">
+def routes(user: User) = (get & path("echo" / Segment)) { s =>
+  val message = s"User: ${user.name}, Message: $s"
+  complete(message)
+}
+
+val authRoutes =
+  authenticateBasic(realm = "Lançamentos", CustomAuthenticator.authenticate) { user =>
+    routes(user)
+  }
+
+Http().bindAndHandle(authRoutes, "localhost", 8080)
+					</code></pre>
+				</section>
+
+				<section>
+					<h3>Custom directives</h3>
+					<pre><code class="scala" style="font-size: 0.88em">
+val requestLogging =
+  logRequestResult(LoggingMagnet(_ => RequestLogging.logRequestResult)) &
+  handleRejections(RejectionHandler.default)
+
+def routes = (get & path("echo" / Segment)) { s =>
+  complete(s)
+}
+
+val loggingRoutes = requestLogging { routes }
+
+Http().bindAndHandle(loggingRoutes, "localhost", 8080)
+					</code></pre>
+				</section>
+
+				<section>
+					<h3>Implicits</h3>
+					<pre><code class="scala" style="font-size: 0.88em">
+implicit def responseWithBody(r: (StatusCode, JValue)): ToResponseMarshallable = {
+  val (status, json) = r
+  status -> HttpEntity(`application/json`, write(json))
+}
+					</code></pre>
+				</section>
+
+                <section>
+                    <h3>Problems</h3>
+                    <p><span class="fragment">Lots of stuff to learn</span></p>
+                    <p><span class="fragment">FileUpload</span></p>
+                    <p><span class="fragment">Monitoring</span></p>
+                </section>
+
+                <section>
+                    <h3>On the other hand</h3>
+                    <p><span class="fragment">No DI mess</span></p>
+                    <p><span class="fragment">Shorter code</span></p>
+                    <p><span class="fragment">Same old mistakes left behind (mostly)</span></p>
+                </section>
+
+                <section>
+                    <h2>Moving forward</h2>
+                </section>
+
+                <section>
+                    <h3>Upgrading</h3>
+                    <p><span class="fragment">Fast release cycles</span></p>
+                    <p><span class="fragment">From 1.0 to 2.0 in no time, seamless for us</span></p>
+                    <p><span class="fragment">Documented migration paths (mostly)</span></p>
+                    <p><span class="fragment">Integral part of Akka, from 2.4.2</span></p>
+                </section>
+
+                <section>
+                    <h3>Solutions</h3>
+                    <p><span class="fragment">Kamon.io + NewRelic</span></p>
+                    <p><span class="fragment">FileUploadDirectives</span></p>
+                </section>
+
+                <section>
+                    <h3>Kamon.io + NewRelic</h3>
+                    <p><span class="fragment"><a href="https://github.com/gamsd/kamon-akka-http-newrelic">github.com/gamsd/kamon-akka-http-newrelic</a></span></p>
+                </section>
+
+                <section>
+                    <h3>FileUpload: from this</h3>
+					<pre><code class="scala" style="font-size: 0.88em">
+(post & path("upload")) {
+  entity(as[Multipart.FormData]) { (formData) =>
+    val uploadedUrlsFuture = formData.parts.map(_.entity.dataBytes).mapAsync(parallelism = 1)(part =>
+      part
+        .map(_.toArray)
+        .runFold(Array[Byte]())((totalBytes, bytes) => totalBytes ++ bytes)
+        .map(fileService.upload(_))
+      ).grouped(1000).runWith(Sink.head)
+
+    val response = uploadedUrlsFuture.map(PhotosResource(_)).map[ToResponseMarshallable](OK -> _)
+    complete(response)
+  }
+}
+                    </code></pre>
+                </section>
+
+                <section>
+                    <h3>FileUpload: to this</h3>
+					<pre><code class="scala" style="font-size: 0.88em">
+val routes = (post & path("upload")) {
+
+  uploadedFile("file") { case (metadata, file) =>
+    val length = file.length() / 1024
+    val message = s"Uploaded file length: $length K\n"
+
+    file.delete()
+    complete(message)
+  }
+}
+
+Http().bindAndHandle(routes, "localhost", 8080)
+                    </code></pre>
+                </section>
+
+                <section>
+                    <h3>Learning is not a problem</h3>
+                </section>
+
+                <section>
+                    <h2>Streams FTW</h2>
+                </section>
+
+                <section>
+                    <h3>Streaming APIs</h3>
+                    <pre><code class="scala" style="font-size: 0.88em">
+val routes = (path("stream") & get) {
+
+  val source = Source(1 to 10)
+  val delimiter = "\r\n"
+
+  val bsSource = source
+    .map(i => s"""{"count": "$i"}""")
+    .map(_.replace("\\r", ""))
+    .map(ByteString.fromString(_) ++ ByteString(delimiter))
+
+  val entity = HttpEntity.Chunked.fromData(MediaTypes.`application/json`, bsSource)
+  val response = HttpResponse(OK, entity = entity)
+
+  complete(response)
+}
+                    </code></pre>
+                </section>
+
+                <section>
+                    <h3>End-to-end streams, part 1</h3>
+                    <pre><code class="scala" style="font-size: 0.88em">
+def stream(): Source[Wat, Any] = {
+
+  def chunkConsumer(res: HttpResponse) = {
+    res.entity.dataBytes
+      .via(Framing.delimiter(ByteString(delimiter), frameSize, allowTruncation = true))
+      .map[Wat](bs => { parse(bs.utf8String).extract[Wat] })
+  }
+
+  val req = HttpRequest(method = HttpMethods.GET, uri = s"http://$host:$port/stream")
+  val res: Source[Wat, Any] = Source.single(req).via(client).flatMapConcat(chunkConsumer)
+
+  res
+}
+                    </code></pre>
+                </section>
+
+                <section>
+                    <h3>End-to-end streams, part 2</h3>
+                    <pre><code class="scala" style="font-size: 0.88em">
+val mat = StreamingClient.stream()
+  .map(_.toString)
+  .map({x => println(x); x})
+  .map(_ => 1)
+  .toMat(Sink.fold[Int, Int](0)(_ + _))(Keep.right)
+  .run()
+                    </code></pre>
+                </section>
+
+                <section>
+                    <h3>Graphs</h3>
+                    <pre><code class="scala" style="font-size: 0.88em">
+private val graph = RunnableGraph.fromGraph(GraphDSL.create(Sink.ignore) { implicit builder =>
+  sink =>
+
+  val in = Source(1 to 25)
+
+  val f1 = Flow[Int].map(pingPong)
+
+  val fOk  = Flow[(Int, Option[String])] filter (_._2.isDefined) map (_._2.get) map System.out.println
+  val fNok = Flow[(Int, Option[String])] filter (_._2.isEmpty) map (x => s"I don't care for ${x._1}") map System.err.println
+
+  val bcast = builder.add(Broadcast[(Int, Option[String])](2))
+  val merge = builder.add(Merge[Unit](2))
+
+  in ~> f1 ~> bcast ~> fOk  ~> merge ~> sink.in
+              bcast ~> fNok ~> merge
+
+  ClosedShape
+})
+                    </code></pre>
+                </section>
+
+                <section>
+                    <h2>Closing thoughts</h2>
+                </section>
+
+                <section>
+                    <h3>Closing thoughts</h3>
+                    <p><span class="fragment">Powerful toolkit</span></p>
+                    <p><span class="fragment">Low-level and high-level DSLs</span></p>
+                    <p><span class="fragment">Akka Streams in the small, Akka Actors in the large</span></p>
+                    <p><span class="fragment">Akka HTTP as integration layer</span></p>
+                </section>
+
+                <section>
+                    <h2>Scala at Vivareal</h2>
+                </section>
+
+                <section>
+                    <h3>Scala at Vivareal</h3>
+                    <p><span class="fragment">Async APIs</span></p>
+                    <p><span class="fragment">Geocoding</span></p>
+                    <p><span class="fragment">Processing at scale</span></p>
+                    <p><span class="fragment">Data science</span></p>
+                    <p><a class="fragment" href="http://engenharia.vivareal.com.br">engenharia.vivareal.com.br</a></p>
+                </section>
+
+                <section>
+                    <h3>We're hiring!</h3>
+                    <p><span><a href="http://www.vivareal.com.br/empresa/carreira/vagas/">www.vivareal.com.br/empresa/carreira/vagas</a></span></p>
+                    <br>
+                    <p><span>guilherme.dantas _ vivareal.com</span></p>
+                </section>
+
+				<section>
+					<h3>Thank you!</h3>
+				</section>
+
+				<section>
+					<h3>Q => A</h3>
+                    <br>
+                    <p><span><a href="https://github.com/gamsd/akka-http-starter">github.com/gamsd/akka-http-starter</a></span></p>
+				</section>
+
+				<section>
+					<h1>Akka Streams & HTTP</h1>
+					<h3>Musings from production</h3>
+					<p>
+                        <small><a href="http://twitter.com/gamsd">@gamsd</a>,
+                            <a href="http://blog.gamsd.com">blog.gamsd.com</a></small>
+					</p>
+				</section>
+			</div>
+
+		</div>
+
+        <script src="/revealjs/lib/js/head.min.js"></script>
+        <script src="/revealjs/js/reveal.js"></script>
+
+        <script>
+
+            // Full list of configuration options available at:
+            // https://github.com/hakimel/reveal.js#configuration
+            Reveal.initialize({
+                controls: true,
+                progress: true,
+                history: true,
+                center: true,
+
+                transition: 'slide', // none/fade/slide/convex/concave/zoom
+
+// Optional reveal.js plugins
+                dependencies: [
+                    { src: '/revealjs/lib/js/classList.js', condition: function() { return !document.body.classList; } },
+                    { src: '/revealjs/plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+                    { src: '/revealjs/plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+                    { src: '/revealjs/plugin/highlight/highlight.js', async: true, condition: function() { return !!document.querySelector( 'pre code' ); }, callback: function() { hljs.initHighlightingOnLoad(); } },
+                    { src: '/revealjs/plugin/zoom-js/zoom.js', async: true },
+                    { src: '/revealjs/plugin/notes/notes.js', async: true }
+                ]
+            });
+
+        </script>
+
+    </body>
+</html>
+

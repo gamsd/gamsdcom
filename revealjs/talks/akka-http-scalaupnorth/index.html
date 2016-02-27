@@ -1,0 +1,715 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+
+    <title>Akka HTTP - Musings from production</title>
+
+    <meta name="description" content="The path to production for a microservice built in Akka HTTP">
+    <meta name="author" content="Guilherme Dantas">
+
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+
+    <link rel="stylesheet" href="/revealjs/css/reveal.css">
+    <link rel="stylesheet" href="/revealjs/css/theme/black.css" id="theme">
+
+    <!-- Code syntax highlighting -->
+    <link rel="stylesheet" href="/revealjs/lib/css/zenburn.css">
+
+    <!-- Printing and PDF exports -->
+    <script>
+        var link = document.createElement( 'link' );
+        link.rel = 'stylesheet';
+        link.type = 'text/css';
+        link.href = window.location.search.match( /print-pdf/gi ) ? '/revealjs/css/print/pdf.css' : '/revealjs/css/print/paper.css';
+        document.getElementsByTagName( 'head' )[0].appendChild( link );
+    </script>
+
+    <!--[if lt IE 9]>
+    <script src="/revealjs/lib/js/html5shiv.js"></script>
+    <![endif]-->
+</head>
+
+<body>
+
+<div class="reveal">
+
+    <!-- Any section element inside of this container is displayed as a slide -->
+    <div class="slides">
+        <section>
+            <h1>Akka HTTP</h1>
+            <h3>Musings from production</h3>
+            <p>
+                <small><a href="http://twitter.com/gamsd">@gamsd</a></small>
+            </p>
+            <aside class="notes">
+                - Akka HTTP is a HTTP library implementation on top of Akka Streams.
+                - Natural sucessor to Spray, built by the same team
+                - Future driver for APIs in Play
+                - I'm not going to dive deep in the techonology
+                - I'm here to talk about trying to move an APIs team from Java/Spring to Scala and Akka HTTP.
+            </aside>
+        </section>
+
+        <section data-background="images/monolith.jpg">
+            <aside class="notes">
+                - It all starts with a monolith. And not so good code.
+                - Time to market, pressure
+                - Clean code as second thougth
+            </aside>
+        </section>
+
+        <section data-background="images/vivareal.png">
+            <aside class="notes">
+                - Time, money and a lot of work later
+                - VivaReal is the biggest real estate portal in Brazil.
+                - Our mission is to connect our users with the homes of their dreams through technology.
+            </aside>
+        </section>
+
+        <section data-background="images/zuniga.jpg">
+            <aside class="notes">
+                - Colombian-born company
+                - Trying to take latin-america
+                - Startup = focus
+                - Focus on Brazilian market
+                - Move from Bogotá to São Paulo.
+            </aside>
+        </section>
+
+        <section data-background="images/maceio.jpg">
+            <aside class="notes">
+                - I was in a sabbatical, playing with technology at home
+                - They found me and made me move from my hometown...
+            </aside>
+        </section>
+
+        <section data-background="images/saopaulo.jpg">
+            <aside class="notes">
+                - ... to the beautiful São Paulo.
+                - Idea was to make things different
+                - Experienced team and resources (time and money) to make things right.
+            </aside>
+        </section>
+
+        <section data-background="images/bridge.jpg">
+            <aside class="notes">
+                - We improved a lot
+                - Much better platform now
+                - Team growing steadly
+                - Old codebase almost entirely deprecated
+                - Microservices
+            </aside>
+        </section>
+
+        <section data-background="images/spring.jpg">
+            <aside class="notes">
+                - Not all flowers
+            </aside>
+        </section>
+
+        <section data-background="images/problems.jpg">
+            <aside class="notes">
+                - Microservices brings new challenges
+                - You're building a distributed system, after all
+                - Right now, three problems bother me the most
+            </aside>
+        </section>
+
+        <section data-background="images/coupling.jpg">
+            <aside class="notes">
+                - Coupling.
+                - We tried REST-style APIs
+                - Lots of endpoints based on operations rather than resources.
+            </aside>
+        </section>
+
+        <section data-background="images/sync.jpg">
+            <aside class="notes">
+                - Coupled with coupling, asynchronicity
+                - We just pretend everything always works fine and instantaneously
+                - We just block and pray for the better
+            </aside>
+        </section>
+
+        <section data-background="images/errorhandling.jpg">
+            <aside class="notes">
+                - Error handling
+                - Generic exceptions, no context for failures
+                - Generic 500s all around
+                - No graceful degradation
+                - One failing or slow API takes everything down
+            </aside>
+        </section>
+
+        <section data-background="images/performance.jpg">
+            <aside class="notes">
+                - Performance and elasticity
+                - Our APIs can't handle spikes
+                - On predictable spikes, we fire up more machines
+                The third and final one is performance, with elasticity. Some of our APIs just can't handle our load when we have some spikes in requests. When we can predict these spikes, we preemptively fire up more machines to prevent crashing. This works but is quite depressing. When we cannot predict these spikes, the load end up flooding some API, it becomes unresponsive, as I told before the others don't know how to handle the situation and everything just goes down.
+            </aside>
+        </section>
+
+        <section data-background="images/apocalypse.jpg">
+            <aside class="notes">
+                Disclaimer: though it seems apocalyptic, it's not. We would be better off without these problems but they haven't grown to the point of causing catastrophes YET.
+            </aside>
+        </section>
+
+        <section data-background="images/scala.png">
+            <aside class="notes">
+                So this is my scenario. Working with Java and Spring and having problems with asynchronicity, error handling and performance. I really couldn't do any different than to push my team to give up on Java for a while and try Scala and its libraries.
+            </aside>
+        </section>
+
+        <section data-background="images/dojo.jpg">
+            <aside class="notes">
+                At first I tried to move the team through dojos and talks and all that stuff, but the fact is that all of this is boring. Things won't really change unless you prove yourself in a real setting. And what I needed to prove is that it is possible to write high performant systems with leaner programming models. Not just possible, but probably the easier way (to some extent).
+            </aside>
+        </section>
+
+        <section data-background="images/truck.jpg">
+            <aside class="notes">
+                So I decided to tackle one of these. Modernizing a codebase means a lot of code writing but also a lot of moving data. In one of this moving data occasions, I got to do some maintenance work in one of our tools.
+            </aside>
+        </section>
+
+        <section data-background="images/overengineering.jpg">
+            <aside class="notes">
+                The first thing I saw, right after starting working on the code, was a lot of explicit threading. Most of the complexity of that program was related to explicit threading (CyclicBarriers, this kind of mess) and also dependency injection stuff and over-engineering in general, things I would not expect in a small one-off tool. tool.
+            </aside>
+        </section>
+
+        <section data-background="images/stream.jpg">
+            <aside class="notes">
+                Only if I had a tool to which I could pass a data source and a set of mostly pure functions and let it deal with running it for me...
+
+                Well, at that point I had been following the development of Akka Streams quite closely and decided it was a good time to give it a try.
+            </aside>
+        </section>
+
+        <section data-background="images/something.jpg">
+
+            <h2>In no time... </h2>
+					<pre><code class="scala">
+                        val images = TableQuery[Images]
+                        val query = images.take(100).result
+                        val fromDatabase: DatabasePublisher[Image] = db.stream(query)
+
+                        Source(fromDatabase)
+                        .map({x => println(x); x})
+                        .mapAsyncUnordered(gatherMoreInfo)
+                        .map(transformInfo)
+                        .mapAsyncUnordered(updateImage)
+                        .map(logSuccessOrError)
+                        .to(Sink.ignore)
+                        .run()
+                    </code></pre>
+
+            <aside class="notes">
+                In no time (much less than I would've spent fighting the old code), I created a source from PostgreSQL using Slick 3, glued together a series of simple functions, then another function to write back to PostgreSQL and I was done.
+
+                The result was a simple, bug-free (to the extend we could observe) and performant code. Not dealing explicitly with threading and getting rid of some other unnecessary code, we cut it from 1100 LOCs down to around 400 LOCs.
+            </aside>
+        </section>
+
+        <section data-background="images/giodai.jpg">
+            <aside class="notes">
+                Some days later, the scale of the problem increased tenfold and we stuck with Akka Streams. Reading 3 million records sequentially from a database is clearly not a great idea, but with some tweaks in the code...
+            </aside>
+        </section>
+
+        <section data-background="images/something.jpg">
+            <h2>I have no idea what I'm doing...</h2>
+					<pre><code>
+                        akka {
+                        stream {
+                        materializer {
+
+                        initial-input-buffer-size = 64
+                        max-input-buffer-size = 256
+
+                        dispatcher = "doge-dispatcher"
+
+                        subscription-timeout {
+                        mode = cancel
+                        timeout = 5s
+                        }
+
+                        debug-logging = on
+                        output-burst-limit = 1000
+                        }
+
+                        }
+                        }
+
+                        doge-dispatcher {
+                        type = Dispatcher
+                        executor = "thread-pool-executor"
+
+                        thread-pool-executor {
+                        core-pool-size-min = 4
+                        core-pool-size-factor = 4.0
+                        core-pool-size-max = 20
+                        }
+
+                        throughput = 1
+                        }
+                    </code></pre>
+            <aside class="notes">
+                ... and a lot of tinkering with Akka Streams properties (materializers, threadpools, etc.), we got to run what we needed with an acceptable performance.
+            </aside>
+        </section>
+
+        <section data-background="images/inlove.jpg">
+            <aside class="notes">
+                I was in love.
+            </aside>
+        </section>
+
+        <section data-background="images/greenfield.jpg">
+            <aside class="notes">
+                Shortly after me falling in love with Akka Streams, we got to start a new project. One of the last pieces from our old monolith was to be thrown away and rebuilt as an independent application.
+
+                So we decided to build it as independently deployed layers. The first of them was an API to abstract our domain model and persistence. Another piece was an API that aggregated data from multiple domain APIs and served some operations to generic frontends. The third part was a 100% pure Javascript app, consuming this operations API.
+            </aside>
+        </section>
+
+        <section data-background="images/akkahttp.jpg">
+            <aside class="notes">
+                Given the previously mentioned pervasive problems in our older APIs (asynchronicity, error handling and elasticity) and my optimism towards Akka Streams the first thing that crossed my mind is that I should use Akka HTTP.
+
+                But, as a responsible adult, I knew I shouldn't just pick the first thing in my mind. Thankfully (or not?), there are quite a lot of options in the Scala ecosystem for building performant APIs. My team and I did a quick research on them before trying to settle for one.
+
+                In a quick overview, as I don't have the time to be precise...
+            </aside>
+        </section>
+
+        <section data-background="images/lift.jpg">
+            <aside class="notes">
+                Differently from most Scala programmers nowadays, I was brought to Scala because of the Lift Framework. It still amazes me and I would love to work with it again, but it seems to be losing momentum.
+            </aside>
+        </section>
+
+        <section data-background="images/play.jpg">
+            <aside class="notes">
+                Play is another strong contender but it looks like to much for a simple API. I often see recommendations in the line of Play for fully featured web apps, and Spray for simpler APIs.
+            </aside>
+        </section>
+
+        <section data-background="images/finagle.jpg">
+            <aside class="notes">
+                Finagle has proven itself in companies like Twitter and Soundcloud, in a scale that I can only dream of, but it added the dependency on Twitter Futures, and I was not sure that was something I wanted. The team would have too much to learn already.
+            </aside>
+        </section>
+
+        <section data-background="images/finch.jpg">
+            <aside class="notes">
+                Finch, based on Finagle, also looks promising, but I was unfair to it and didn't try it properly. I'll definitely keep an eye on how it evolves.
+            </aside>
+        </section>
+
+        <section data-background="images/scalatra.jpg">
+            <aside class="notes">
+                Scalatra caught our attention for a while, but development seems to be slowing down, the latest post in their blog is from over a year ago.
+            </aside>
+        </section>
+
+        <section data-background="images/spray.jpg">
+            <aside class="notes">
+                Spray is mature and fast, but development is moving towards Akka HTTP. Why shouldn't we?
+            </aside>
+        </section>
+
+        <section data-background="images/akkahttp.jpg">
+            <aside class="notes">
+                Akka HTTP, finally, is really promising, being built by a strong team with support from Typesafe, but is still to young. It still lacks a lot of documentation and real world examples.
+            </aside>
+        </section>
+
+        <section data-background="images/tradeoffs.jpg">
+            <aside class="notes">
+                In the end, each of our possible options had its tradeoffs, with strengths and weaknesses, but we needed to pick one. This is not a comparison, I'm not trying to say that one library is better than the others. It all boils down to what you need, what you feel more comfortable with and what you are willing to learn.
+            </aside>
+        </section>
+
+        <section data-background="images/solid.jpg">
+            <aside class="notes">
+                That said, we chose Akka HTTP because we believe it points to the future. It is built over the solid foundations of Spray, by a high-profile team supported by a solid company and on top of Akka Streams, that I already loved before the first release. Also, our project was pretty small, it would be easy to give up and revert to anything else if needed. If this project was more to the critical side, we would propably have chosen Spray or Finagle, something proven on production on large scale.
+
+                The lack of documentation and still not being optimized for performance were not major problems, as we were building a small API and, just like the library, looking more for conceptual integrity rather than outstanding performance. Anyway, this API is really small and marginal and not used by many (I would be shocked if ever gets 500 rpm - yeah, it was really small, it was the only way to make the suits let me play with scala), so the current performance that Akka HTTP gives us is more than enough. And with Typesafe's support, we can expect both documentation and performance improvements in the coming months.
+
+                Another selling point for Akka HTTP, but this one that works for some of the other options as well, is that it really feels like a library more that a framework. It's not like what I'm used to see in Java, intrusive frameworks that make it idiomatic to have themselves tangled with almost every class in your project.
+
+                We can build a thin HTTP layer with Akka HTTP that just routes and transform requests and calls vanilla Scala code in the lower layers. If you ever decide to ditch Akka HTTP for another library, say Spray, you don't really need to touch most of your code.
+            </aside>
+        </section>
+
+        <section data-background="images/architecture.jpg">
+            <aside class="notes">
+                So, from what I just said, it's easy to imagine that we took advantage of that. Akka HTTP is just a thin layer in our APIs.
+            </aside>
+        </section>
+
+        <section data-background="images/firstapi.jpg">
+            <aside class="notes">
+                In our first API (resource API), we kept almost every default setting from akka-http-microservice activator template, most notably Spray JSON. In this API, we split our HTTP layer into protocols, routes and controllers. The protocols were required by Spray JSON and used on marshalling and unmarshalling on routes and controllers. The routes dealt with unmarshalling input, routing logic and applying custom directives. Finally, the controllers handled errors, HTTP status codes and marshalling output. Our database access layer was built on ReactiveMongo, completely async. The rest of the code was plain Scala, just boring to discuss here.
+            </aside>
+        </section>
+
+        <section data-background="images/secondapi.jpg">
+            <aside class="notes">
+                In our second API (operations API), we slightly changed our approach. In this case, we split the API into three larger blocks. The first one was the application layer, with routing and custom directives. This time, we kept the controller logic within the routes definitions and ditched Spray JSON in favour of JSON4S. The custom directives we wrote were for general request logging, monitoring and authentication. The second one, service, had our model and business logic, completely decoupled from Akka HTTP. Finally, the third block had some helper functions, configuration, implicit conversions and async clients for external services, again completely independent from Akka HTTP. For these clients we used dispatch, that is also async.
+            </aside>
+        </section>
+
+        <section data-background="images/easy.jpg">
+            <aside class="notes">
+                Of particular interest was the ease to change Spray JSON for JSON4S, the power of directives and usefulness of implicits.
+            </aside>
+        </section>
+
+        <section data-background="images/akka-http-json.jpg">
+            <aside class="notes">
+                In the marshalling front, the great work in https://github.com/hseeberger/akka-http-json enables us to use the JSON library we want (why don't we just agree on JSON4S - or RaptureJson - already?).
+            </aside>
+        </section>
+
+        <section data-background="images/something.jpg">
+            <h2>Custom directives</h2>
+					<pre><code class="scala">
+                        val routes = requestLogging {
+                        {your open routes} ~
+                        authenticateBasic(realm = "YOUR_REALM", BasicAuthenticator.authenticate) {
+                        user =>
+                        {your protected routes}
+                        }
+                        }
+                    </code></pre>
+            <aside class="notes">
+                Using Spray-like directives, we added generic logging and monitoring for every endpoint in a not intrusive way (no annotation overflow, that mess), specializing only where needed. We also added authentication and authorization to the endpoints that required it with minimal code changes.
+            </aside>
+        </section>
+
+        <section data-background="images/something.jpg">
+            <h2>Implicits FTW</h2>
+					<pre><code class="scala">
+                        implicit def responseWithBody(r: (StatusCode, JsValue)): ToResponseMarshallable = {
+                        r._1 -> HttpEntity(`application/json`, r._2.prettyPrint)
+                        }
+                    </code></pre>
+            <aside class="notes">
+                Finally, we made our code a bit easier to read by creating implicit conversions from pairs of (HttpStatusCode, JSON) to ToResponseMarshallable (that is, something that can be marshalled into a response). Sometimes default conversions would pick our responses and correctly transform the to ToResponseMarshallable instances, but now always. Setting for pairs of (HttpStatusCode, JSON) and creating the conversions ourselves, we had better guarantees about what would work.
+            </aside>
+        </section>
+
+        <section data-background="images/tidy.jpg">
+            <aside class="notes">
+                Overall, our code base ended up pretty slick. The code is short, readable and easy to maintain, but we had some hiccups.
+            </aside>
+        </section>
+
+        <section data-background="images/scaladays.jpg">
+            <aside class="notes">
+                The first problem is that I was not the best teammate ever at some point. I stayed with the team during the development of our first API, but later, when we were just starting the second one, I left on vacations to attend ScalaDays in Amsterdam. I was the only engineer experienced in Scala in the company at that time and left the team to learn a lot of new stuff by themselves in the middle of the project. Bad timing.
+            </aside>
+        </section>
+
+        <section data-background="images/sync.jpg">
+            <aside class="notes">
+                This lack of expertise from the team was especially latent when working with asynchronous concepts. Coming mostly from the Java/Spring world, the team was not used to working with futures and maps and flatMaps. This caused us to see some code smells, like firing some async operation and returning success codes right after, maybe counting on some mighty exception to prevent the return in case anything had gone wrong. About maps and flatMaps, one of the engineers in my team summed up the situation: "whenever I need to use it, I first try map and, if it goes wrong, I try flatMap".
+            </aside>
+        </section>
+
+        <section data-background="images/nykolas.jpg">
+            <aside class="notes">
+                The bigger problem, though, was going a bit farther than the typical JSON-based API and trying to build a file upload endpoint. At this task, being too stream-based seemed to get in the way instead of helping. In the end, the team managed to build the endpoint but had a lot of difficulty. Also, the resulting code doesn't look good. I expect to have some helpers (from the Akka HTTP team or community-built) in the future to make this kind of task easier.
+            </aside>
+        </section>
+
+        <section data-background="images/cakepattern.jpg">
+            <aside class="notes">
+                On the other hand, building microservices in Akka HTTP and Scala enabled us to get rid of some unnecessary complexity often seen in some Java frameworks. I think ScalaUpNorth is not a place where I still need to propagandize all the goodness of tools like case classes and functional combinators, but the mix of traits and objects let us build a simple and modular architecture without resorting to intrusive dependency injection frameworks or even the complexity of the cake pattern. Our code is not as flexible as it could be with the cake pattern, but it is flexible enough. The microservices ended up so simple that this complexity just wasn't justifiable.
+            </aside>
+        </section>
+
+        <section data-background="images/thinker.jpg">
+            <aside class="notes">
+                Another benefit of moving from Java-land to Scala and Akka HTTP is that we needed to reconsider a lot of what we usually take for granted, including our repeated mistakes. Thinking deeper about every step we took, we wrote better quality code, even if not perfect. The end result is that since we launched the project around one month ago, we had just one bug report and due to a really gross mistake, clearly more related to the understanding of one of our requirements than with coding per se. (We though some specific piece of data was required, but it was not.)
+
+                Thinking deeper about everything you do also means you take longer to do anything. And this has some evil side effects, such as frustration and management pressure.
+            </aside>
+        </section>
+
+        <section data-background="images/frustration.jpg">
+            <aside class="notes">
+                Frustration comes in the form of feeling unproductive, so it is imperative to make it clear that learning and being slow are part of the task of trying and evaluating new technology.
+
+                Management pressure comes in the form of demanding immediate returns, so it is imperative to make it clear that learning, being slow and even failing are part of the task of trying and evaluating new technology. This technology that gives you leaner code with no bugs and hyper performance and productivity and that takes no time to learn still doesn't exist!
+            </aside>
+        </section>
+
+        <section data-background="images/kamonio.jpg">
+            <aside class="notes">
+                Past the overall experience, one pretty critical point regarding APIs, microservices and reactive systems is monitoring.
+
+                This is one area that shows how young Akka HTTP still is. Kamon.io looks like the best open source choice to monitor reactive systems. On top of its core modules, it also has specific modules to monitor Akka actors, Play and Spray. Sadly, it still doesn't have a module for Akka HTTP.
+
+                This means that finer grained monitoring is still intrusive for us. It adds noise to the code and some noise that is boring to write.
+
+                Right now we are left with three possibilities.
+            </aside>
+        </section>
+
+        <section data-background="images/something.jpg">
+            <h2>Monitoring Akka HTTP</h2>
+            <p><span class="fragment">Annotating the code</span></p>
+            <p><span class="fragment">Relying on general data</span></p>
+            <p><span class="fragment">Contributing to Kamon.io</span></p>
+            <aside class="notes">
+                One of them is annotating your code and extracting information. It's noisy but it gives you exactly what you need.
+
+                The other one is not annotating your code, or annotating it generically, and relying on general system data (processor, threads, memory, JVM metrics, network) and actor system data that Kamon.io gives you for free.
+
+                The third, and probably the best one, is helping build the Akka HTTP module.
+
+                This will really depend on your focus and bandwith to do some extra work. As our APIs in production are quite simple and small and run in isolation, we're probably going with a mix of generic request data and system and actors metrics from Kamon.io modules. As soon as the Akka HTTP module gets done, there's no reason not to use it. I actually wanted to try my hand at this last week but preparing this talk took longer than I thougth possible. If you want to try your hand at this too, there's already a pull request open (not by me) in Kamon.io GitHub repo. You can start there.
+            </aside>
+        </section>
+
+        <section data-background="images/typesafemonitoring.jpg">
+            <aside class="notes">
+                I know Typesafe is also working on monitoring tools, but I don't know how and when they are planning to support Akka HTTP or anything about subscriptions. Anyway, if we're trying to push adoption of Scala and Akka HTTP, it is really important to have solid open source alternatives.
+            </aside>
+        </section>
+
+        <section data-background="images/gatling.jpg">
+            <aside class="notes">
+                As one can't simply talk about monitoring and not show some data, I'm gonna talk briefly about some early evidence of performance. Remember that we're talking about a system that was written with very low performance requirements and on top of a library that is still not optimized of it.
+
+                Just as in Michael Nash's talk yesterday, I used gatling to generate load.
+            </aside>
+        </section>
+
+        <section data-background="images/environment.jpg">
+            <aside class="notes">
+                Given the mess that was going on and the environment where I ran these tests, take these results with a grain of salt.
+
+                Environment: this very Macbook Pro from some time ago, running the target APIs locally, together with MongoDB, Gatling for generating load, Docker with StatsD + Graphite + Grafana configuration for analysing performance data, and lots of completely unrelated tools like IntelliJ IDEA, Chrome, Spotify and whatever else was running on background without me knowing about it.
+            </aside>
+        </section>
+
+        <section data-background="images/something.jpg">
+            <h2>Gatling Simulation</h2>
+					<pre><code>
+                        val httpConf = http.baseURL("http://localhost:8081")
+
+                        val scn = scenario("Simple Scenario")
+                        .during(5 minutes) { exec(http("Simple Get").get("/resources")) }
+
+                        setUp(scn.inject(atOnceUsers( x )).protocols(httpConf))
+                    </code></pre>
+            <aside class="notes">
+                On my first tests, running everything locally and with only 1 parallel user on Gatling, I got 400 rps.
+
+                Pushing harder, with 15 parallel users, I jumped to 1500 rps. Actually, if I go over 15 parallel users in my machine, the request rate keeps the same. Looks like I don't have perfect scalability (and I still don't know where the contention is), but very few systems really require more than 1,5K rps. (I'll get back to this number in an instant!)
+
+                The more interesting data, though, is some system data. The API is actually serving 1,5K rps with under 80 threads. This is just not possible with anything depending on servlet containers or thread-per-request models.
+            </aside>
+        </section>
+
+        <section data-background="images/something.jpg">
+            <h2>But after all, did we solve our problems or not?</h2>
+            <p><span class="fragment">No.</span> <span class="fragment">We won't solve our distributed problems writing just one or two small APIs.</span></p><p><span class="fragment"> But we're on a better path now.</span></p>
+
+            <aside class="notes">
+                After all, did we solve our problems or not?
+
+                No. We won't solve our distributed problems writing just one or two small APIs, but we're on our way.
+            </aside>
+        </section>
+
+        <section data-background="images/something.jpg">
+            <h2>Explicit Asynchronicity</h2>
+            <p><span class="fragment">Akka HTTP, Dispatch, ReactiveMongo</span></p>
+            <p><span class="fragment">Always returns Futures</span></p>
+
+            <aside class="notes">
+                With Akka HTTP, Dispatch and Reactive Mongo, every interaction with external systems returns Futures. That is positive for two reasons. The first is that we are now obliged to deal with asynchronicity explicitly at some point. Now we cannot pretend. We need to set timeouts and work with Futures composition, for example.
+            </aside>
+        </section>
+
+        <section data-background="images/something.jpg">
+            <h2>Error/failure handling</h2>
+            <p><span class="fragment">Futures encapsulate failures</span></p>
+            <p><span class="fragment">You handle errors wherever you want</span></p>
+            <p><span class="fragment">You keep context information</span></p>
+
+            <aside class="notes">
+                The other reason is that if anything blows up in a given async computation, possibly thrown expcetions stay encapsulated inside the Future objects. This way you gain more freedom to handle errors where you find most appropriate inside your normal path of execution, as they won't (or shouldn't, I'm looking at you!) turn into exception that completely break your flow and go somewhere else.
+            </aside>
+        </section>
+
+        <section data-background="images/something.jpg">
+            <h2>We can still mess up everything</h2>
+            <blockquote class="fragment">
+                &ldquo;Given different Turing-complete languages, it is what they make idiomatic that truly sets them apart.&rdquo;
+            </blockquote>
+            <aside class="notes">
+                So, Akka HTTP and Scala give us the tools that we need to make a better job in handling failures and asynchronous computations and make it idiomatic to use them. We can still repeat the same old mistakes, but in this case we wouldn't be writing idiomatic Scala. As someone who I don't know wisely said: given a lot of Turing-complete languages, it is what they make idiomatic that truly sets them apart.
+            </aside>
+        </section>
+
+        <section data-background="images/something.jpg">
+            <h2>Performance and elasticity</h2>
+            <p><span class="fragment">We won't need to scale these APIs for a long time</span></p>
+            <p><span class="fragment">If they ever go down due to load, I'll be more excited than worried</span></p>
+            <aside class="notes">
+                On elasticity, I really don't have data to discuss. Being extremely lightweight with Akka HTTP, our APIs boot in under 4s. In an environment such as AWS and using fine tuned triggers, I guess this can make you fire machines up fast enough to handle spikes, but that is just hypothesis. What is more interesting for our setting, though, is that Akka HTTP, even not being optimized for it, already gives us better performance than we care to have. Whenever any of these APIs demand performance better than what Akka HTTP gives, I'll be extremely happy rather than worried.
+            </aside>
+        </section>
+
+        <section data-background="images/something.jpg">
+            <h2>Backpressured clients</h2>
+            <p><span class="fragment">We still haven't done this</span></p>
+            <p><span class="fragment">Might let a node to deal with high load </span></p>
+            <p><span class="fragment">Without crashing overloaded</span></p>
+
+            <aside class="notes">
+                Still on elasticity, something we haven't done yet is writing clients based on reactive streams. I guess that having backpressure on the client side could allow a client system to slow down its requests while other servers are being made available to handle higher loads. This would allow us to scale in a reasonable way. For example: we may set a trigger to scale our system if any node appears to be at capacity for too long, without worrying that that node would go down for being over capacity.
+            </aside>
+        </section>
+
+        <section data-background="images/something.jpg">
+            <h2>Would I use Akka HTTP again?</h2>
+        </section>
+
+        <section data-background="images/hellyeah.jpg">
+        </section>
+
+        <section data-background="images/something.jpg">
+            <h2>Am I happy with the whole experience?</h2>
+        </section>
+
+        <section data-background="images/no.png">
+        </section>
+
+        <section data-background="images/something.jpg">
+            <h2>Wrapping up...</h2>
+            <p><span class="fragment">We had no strong requirements</span></p>
+            <p><span class="fragment">Exciting early results</span></p>
+            <p><span class="fragment">Promise of Akka HTTP</span></p>
+
+            <aside class="notes">
+                Given our lack of strong requirements, our early results and the promise of Akka HTTP, the team and support from Typesafe, the already more than enough performance...
+            </aside>
+        </section>
+
+        <section data-background="images/something.jpg">
+            <h2>Wrapping up...</h2>
+            <p><span class="fragment">I believe we made a good choice</span></p>
+
+            <aside class="notes">
+                I believe we made a good choice.
+            </aside>
+        </section>
+
+        <section data-background="images/something.jpg">
+            <h2>Wrapping up...</h2>
+            <p><span class="fragment">Promising technology</span></p>
+            <p><span class="fragment">Experience was close to what could have been with other libraries</span></p>
+
+            <aside class="notes">
+                The technology is fine, unquestionable and promising, but in the end, the experience of building APIs using Akka HTTP with a team with no previous knowledge of Scala was close to what could have been if I had chosen any other libraries/frameworks instead.
+            </aside>
+        </section>
+
+        <section data-background="images/something.jpg">
+            <h2>Community can make it better</h2>
+            <p><span class="fragment">Keep building and sharing experiences</span></p>
+            <p><span class="fragment">Write and discuss elaborate code samples</span></p>
+            <p><span class="fragment">Write documentation, engage in the mailing lists</span></p>
+            <p><span class="fragment">Write blogs posts, documentation, engage in the mailing lists</span></p>
+            <p><span class="fragment">Speak more, show your faces, tell your history</span></p>
+
+            <aside class="notes">
+                So what can really set Akka HTTP apart right now is the community. We need to keep building and sharing our experiences, writing code samples, documentation, engaging in mailing lists, writing blog posts and speaking (showing our faces, making public commitments so you'll have no other option than contributing).
+            </aside>
+        </section>
+
+        <section data-background="images/something.jpg">
+            <h2>This is not over</h2>
+            <p><span class="fragment">Let's take the discussion online</span></p>
+            <p><span class="fragment">Dive deeper into the problems and how to solve them</span></p>
+            <p><span class="fragment">Build and improve Akka HTTP community together</span></p>
+
+            <aside class="notes">
+                The idea is for this talk to never be really over. This is just a start, we need to take this online. Let's dive deeper into more difficult technical questions, build elaborate examples, and keep improving Akka HTTP's community together.
+            </aside>
+        </section>
+
+        <section data-background="images/something.jpg">
+            Thank you!
+            <aside class="notes">
+            </aside>
+        </section>
+
+        <section data-background="images/something.jpg">
+            Q => A
+            <aside class="notes">
+            </aside>
+        </section>
+
+        <section>
+            <h1>Akka HTTP</h1>
+            <h3>Musings from production</h3>
+            <p>
+                <small><a href="http://twitter.com/gamsd">@gamsd</a></small>
+            </p>
+            <p>
+                <small>
+                    <a href="http://engenharia.vivareal.com.br">
+                        http://engenharia.vivareal.com.br
+                    </a>
+                </small>
+            </p>
+        </section>
+    </div>
+
+</div>
+
+<script src="/revealjs/lib/js/head.min.js"></script>
+<script src="/revealjs/js/reveal.js"></script>
+
+<script>
+
+    // Full list of configuration options available at:
+    // https://github.com/hakimel/reveal.js#configuration
+    Reveal.initialize({
+        controls: true,
+        progress: true,
+        history: true,
+        center: true,
+
+transition: 'slide', // none/fade/slide/convex/concave/zoom
+
+// Optional reveal.js plugins
+dependencies: [
+{ src: '/revealjs/lib/js/classList.js', condition: function() { return !document.body.classList; } },
+{ src: '/revealjs/plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+{ src: '/revealjs/plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+{ src: '/revealjs/plugin/highlight/highlight.js', async: true, condition: function() { return !!document.querySelector( 'pre code' ); }, callback: function() { hljs.initHighlightingOnLoad(); } },
+{ src: '/revealjs/plugin/zoom-js/zoom.js', async: true },
+{ src: '/revealjs/plugin/notes/notes.js', async: true }
+]
+});
+
+</script>
+
+</body>
+</html>
