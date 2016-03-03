@@ -321,7 +321,7 @@ dl dd {
 .post {
     position: relative;
     margin: 2rem auto;
-    padding-bottom: 4rem;
+    padding-bottom: 0rem;
     word-break: break-word;
     hyphens: auto;
 }
