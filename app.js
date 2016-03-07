@@ -8,6 +8,7 @@ app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'revealjs')));
 app.use('/talks', express.static(path.join(__dirname, 'revealjs', 'talks')));
+app.use('/cv', express.static(path.join(__dirname, 'public', 'cv.html')));
 
 app.use(function(req, res, next) {
   res.redirect('/')
