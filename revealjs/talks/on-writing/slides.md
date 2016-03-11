@@ -3,131 +3,177 @@
 
 ---
 
-###Above all, writing depends on style
-####Saramago, Proust
-
----
-
-####Are you confident enough on your style? Get out!
-####If you're not, better start from the basics!
-
----
-
-###KISDF - Keep it simple, dear friend!
-####You're (likely) not writing a novel
-
----
-
-```
-Writing comes from observation, different perspectives,
-the gift of getting into other people's minds...
-```
+### Above all, writing depends on style
+#### Saramago, Proust
 
 --
 
-```
-... brings serendipity, reputation, job offers, raises.
-```
+> “Words are like that, they deceive, they pile up, it seems they do not know where to go, and, suddenly, because of two or three or four that suddenly come out, simple in themselves, a personal pronoun, an adverb, an adjective, we have the excitement of seeing them coming irresistibly to the surface through the skin and the eyes and upsetting the composure of our feelings, sometimes the nerves that can not bear it any longer, they put up with a great deal, they put up with everything, it was as if they were wearing armor, we might say.”
+
+Saramago
+
+--
+
+> "Their honour precarious, their liberty provisional, lasting only until the discovery of their crime; their position unstable, like that of the poet who one day was feasted at every table, applauded in every theatre in London, and on the next was driven from every lodging, unable to find a pillow upon which to lay his head, turning the mill like Samson and saying like him: "The two sexes shall die, each in a place apart!"; excluded even, save on the days of general disaster when the majority rally round the victim... [redacted]
+
+Proust
+
+[full quote, really long](https://www.quora.com/Do-you-know-the-poster-that-diagrams-Prousts-longest-sentence)
 
 ---
 
-###General advice
+#### Are you confident enough on your style?
+#### If you're not, better start from the basics!
+
+---
+
+### Keep it simple
+#### You're (likely) not writing a novel
+
+---
+
+> Writing comes from observation, different perspectives, the great opportunity of getting into other people's minds...
+
+
+---
+
+### General advice
+- Read
+
+---
+
+### General advice
 - Know why you're writing
-- Solved problem
-- New technology, POC
-- Great project
-- Roberto Marin's fake not-pressure
 - Write for yourself
 
 ---
 
-###Advice on style
+### You can write about anything
+- Solved problem
+- New technology
+- Great project
+- Roberto Marin's fake not-pressure
+- Opinion pieces (beware!)
+
+---
+
+### Advice on style
 - Active voice
 - Small phrases
-- Know who you're writing to
-- Use your vocabulary adequately
-- Know your audience
-- Beware of ambiguity
-- Beware of redundancy
 - Avoid composing verbs
 
 ---
 
-###Advice on style
-####Examples
+### More advice on style
+- Use your vocabulary adequately
+- Know who you're writing to
+- Know your readership
+- Know your audience
 
 ---
 
-###Writing about programming
-- While here, tell VivaReal's story
-- Show me the code!
+### And more...
+- Beware of ambiguity
+- Beware of redundancy
+- Avoid suspense
+
+---
+
+### Examples
+
+---
+
+### Writing about programming
+- Tell a story
+- Build a reputation
+- Minimize frustration
+
+---
+
+### Writing about programming
+- Code!
 - Working examples
-- Version numbers, Dates
-- GitHub repo from where anyone can pickup
 - Proper links
+- Version numbers, dates
+- GitHub repo from where anyone can pickup
 
 ---
 
-###Writing about programming
-####Examples
+### Examples
 
 ---
 
-###Advice on productivity
+### Advice on productivity
 - Limit scope (the broader, the harder)
-- Minimize distractions
-- Put. It. Down.
+- Outline your post
 - One word at a time
 - Write drunk, edit sober
+
+---
+
+### More advice on productivity
+- Minimize distractions
 - Find your workflow
-- Write twice
+- When in doubt, write twice
 - Content is the hard part
 
 ---
 
-###Tools
-- Ghost.io
-- Markdown editors
-- Focus-mode editors
-- Hemingway App
-- Write or Die 2
+### Examples
 
 ---
 
-###More from the best
+### Tools
+- [Ghost](https://ghost.org/)
+- [Github](https://github.com)
+- [Dillinger.io](http://dillinger.io/)
+- Markdown and focus-mode editors
+
+---
+
+### More tools
+- [Hemingway App](http://www.hemingwayapp.com/)
+- [Write or Die 2](http://writeordie.com/)
+
+---
+
+### More advice from real writers
 - Find an ideal reader
-- Layered review
 - Who do you trust to see your unfinished work?
 - Who you would like to like your writing?
 
 ---
 
-###But, after all, none of this matter
+### Just start
 - You have no readers
 - By the time you have, you'll write better
 - Don't bother
-- I'm not a writer and here I am
 
 ---
 
-###While you're writing a lot,
-###find your style!
+### Write a lot!
+### Find out what works for you.
+##### (I'm no writer to tell you what to do)
 
 ---
 
-###Further writing education
-- On writing, Stephen King
-- Ernest Hemingway on writing, Ernest Hemingway
-- Bird by bird, Anne Lamott
-- A field guide for immersion writing, Robin Hemley
-- Storycraft, Jack Hart
-- To show and to tell, Phillip Lopate
-- On writing well: an informal guide to writing nonfiction, William Zinsser
-- Contemporary creative nonfiction, Bill Roorbach
+##### You know enough to start
 
 ---
 
-##Live writing?
+### Further technical writing education
+- [How to blog about code and give zero fucks](http://garann.com/dev/2013/how-to-blog-about-code-and-give-zero-fucks/)
+- [Blogging for busy programmers, Andrzej Krzywda](https://blog.arkency.com/blogging/)
+
+---
+### Further general writing education
+- [On writing, Stephen King](http://www.amazon.com/On-Writing-Anniversary-Edition-Memoir/dp/1439156816)
+- [Ernest Hemingway on writing, Larry W. Phillips](http://www.amazon.com/Ernest-Hemingway-Writing-Larry-Phillips/dp/0684854295)
+
+
+---
+
+## Live writing?
 
 ---
 
