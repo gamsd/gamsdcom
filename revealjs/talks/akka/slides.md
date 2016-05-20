@@ -1,5 +1,5 @@
 # Akka, actors and the right tool for the job
-[@gamsd](https://twitter.com/gamsd) - [blog.gamsd.com](http://blog.gamsd.com)
+[@gamsd](https://twitter.com/gamsd)
 
 ---
 
@@ -391,6 +391,17 @@ The right tool for the job makes things easier
 ---
 
 But then you need to know different tools to choose from!
+
+---
+
+https://groups.google.com/forum/#!forum/scaladores
+http://www.scaladores.com.br
+
+---
+
+https://github.com/gamsd/downloader
+
+http://gamsd.com/talks/akka
 
 ---
 
