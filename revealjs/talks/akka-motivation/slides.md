@@ -401,7 +401,7 @@ http://www.scaladores.com.br
 
 https://github.com/gamsd/downloader
 
-http://gamsd.com/talks/akka
+http://gamsd.com/talks/akka-motivation
 
 ---
 
