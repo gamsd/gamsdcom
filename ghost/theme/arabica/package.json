@@ -1,5 +1,16 @@
 {
-  "name": "ArabiGamsd",
-  "version": "1.0.7",
-  "author": "Sean Lunsford, Guilherme Dantas"
+  "name": "arabigamsd",
+  "version": "1.2.0",
+  "author": {
+    "name": "Guilherme Dantas (based on Sean Lunsford work)",
+    "email": "services+ghost@gamsd.com",
+    "url": "http://gamsd.com"
+  },
+  "keywords": ["ghost-theme"],
+  "config": {
+    "posts_per_page": 5
+  },
+  "engines": {
+    "ghost-api": "v3"
+  }
 }
